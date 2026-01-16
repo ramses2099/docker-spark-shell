@@ -1,0 +1,14 @@
+
+services:
+  spark-shell:
+    image: apache/spark
+    container_name: spark_interactive
+    # Standard spark-shell command
+    command: /opt/spark/bin/spark-shell
+    # -it equivalent:
+    stdin_open: true
+    tty: true
+    volumes:
+      # Mapping a local 'data' folder to a path inside the container
+      - ./data:/opt/spark/work-dir
+    working_dir: /opt/spark/work-dir
