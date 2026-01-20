@@ -3,8 +3,7 @@ Docker compose with spark-shell
 
 
 ## How to use it
-
-## Create a data folder: In the same directory as your YAML file, create a folder named data. This is where you can put CSVs or scripts you want Spark to see.
+Create a data folder: In the same directory as your YAML file, create a folder named data. This is where you can put CSVs or scripts you want Spark to see.
 
 ## Launch the container:
 ```
@@ -16,6 +15,7 @@ docker-compose up -d
 - Spark Master UI -> http://localhost:8080
 - Worker UI -> http://localhost:8081
 - Spark History UI -> http://localhost:18080
+- JupyterLab -> http://localhost:8888
 
 ## Run spark-shell (Scala)
 ```

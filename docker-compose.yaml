@@ -27,6 +27,7 @@ services:
 
   spark-worker:
     image: apache/spark:3.5.1
+    container_name: spark-worker
     user: "185:185"
     depends_on:
       - spark-master
@@ -71,6 +72,7 @@ services:
     networks:
       - spark-net
     restart: unless-stopped
+   
 
 networks:
   spark-net:
