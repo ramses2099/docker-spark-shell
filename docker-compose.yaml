@@ -1,14 +1,81 @@
 
 services:
-  spark-shell:
-    image: apache/spark
-    container_name: spark_interactive
-    # Standard spark-shell command
-    command: /opt/spark/bin/spark-shell
-    # -it equivalent:
-    stdin_open: true
-    tty: true
+  spark-master:
+    image: apache/spark:3.5.1
+    container_name: spark-master
+    hostname: spark-master
+    user: "185:185"
+    command: >
+      /opt/spark/bin/spark-class
+      org.apache.spark.deploy.master.Master
+    environment:
+      SPARK_MASTER_HOST: spark-master
+      SPARK_MASTER_PORT: 7077
+      SPARK_MASTER_WEBUI_PORT: 8080
+      SPARK_EVENTLOG_ENABLED: "true"
+      SPARK_EVENTLOG_DIR: /opt/spark/events
+    ports:
+      - "7077:7077"
+      - "8080:8080"
     volumes:
-      # Mapping a local 'data' folder to a path inside the container
-      - ./data:/opt/spark/work-dir
-    working_dir: /opt/spark/work-dir
+      - spark-logs:/opt/spark/logs
+      - spark-events:/opt/spark/events
+      - ./shared:/opt/spark/shared
+    networks:
+      - spark-net
+    restart: unless-stopped
+
+  spark-worker:
+    image: apache/spark:3.5.1
+    user: "185:185"
+    depends_on:
+      - spark-master
+    command: >
+      /opt/spark/bin/spark-class
+      org.apache.spark.deploy.worker.Worker
+      spark://spark-master:7077
+    environment:
+      SPARK_WORKER_CORES: 2
+      SPARK_WORKER_MEMORY: 2g
+      SPARK_WORKER_WEBUI_PORT: 8081
+      SPARK_EVENTLOG_ENABLED: "true"
+      SPARK_EVENTLOG_DIR: /opt/spark/events
+    ports:
+      - "8081:8081"
+    volumes:
+      - spark-logs:/opt/spark/logs
+      - spark-events:/opt/spark/events
+      - ./shared:/opt/spark/shared
+    networks:
+      - spark-net
+    restart: unless-stopped
+
+  spark-history:
+    image: apache/spark:3.5.1
+    container_name: spark-history
+    user: "185:185"
+    depends_on:
+      - spark-master
+    command: >
+      /opt/spark/bin/spark-class
+      org.apache.spark.deploy.history.HistoryServer
+    environment:
+      SPARK_HISTORY_OPTS: >
+        -Dspark.history.fs.logDirectory=/opt/spark/events
+        -Dspark.history.ui.port=18080
+    ports:
+      - "18080:18080"
+    volumes:
+      - spark-events:/opt/spark/events
+      - ./shared:/opt/spark/shared
+    networks:
+      - spark-net
+    restart: unless-stopped
+
+networks:
+  spark-net:
+    driver: bridge
+
+volumes:
+  spark-logs:
+  spark-events:
